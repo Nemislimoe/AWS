@@ -1,0 +1,65 @@
+﻿@model IEnumerable<CloudMediaGallery.Models.MediaFile>
+@{
+    ViewData["Title"] = "Gallery";
+    var tags = ViewBag.Tags as List<CloudMediaGallery.Models.Tag> ?? new List<CloudMediaGallery.Models.Tag>();
+    string? selectedType = ViewBag.SelectedType as string;
+    int? selectedTagId = ViewBag.SelectedTagId as int?;
+}
+
+<h2>Галерея</h2>
+
+<div class="row mb-3">
+    <div class="col-md-4">
+        <form method="get" asp-action="Index">
+            <div class="input-group">
+                <select class="form-select" name="type" onchange="this.form.submit()">
+                    <option value="">Усі типи</option>
+                    <option value="image" selected="@(selectedType == "image" ? "selected" : null)">Зображення</option>
+                    <option value="video" selected="@(selectedType == "video" ? "selected" : null)">Відео</option>
+                </select>
+                <select class="form-select" name="tagId" onchange="this.form.submit()">
+                    <option value="">Усі теги</option>
+                    @foreach (var t in tags)
+                    {
+                        <option value="@t.Id" selected="@(selectedTagId == t.Id ? "selected" : null)">@t.Name</option>
+                    }
+                </select>
+                <a class="btn btn-outline-secondary" href="@Url.Action("Index")">Скинути</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row">
+    @foreach (var item in Model)
+    {
+        <div class="col-md-3 mb-4">
+            <div class="card h-100">
+                @if (item.MediaType == "image")
+                {
+                    <img src="@item.BlobUrl" class="card-img-top" style="height:180px;object-fit:cover" />
+                }
+                else
+                {
+                    <video src="@item.BlobUrl" class="card-img-top" style="height:180px;object-fit:cover" controls preload="metadata"></video>
+                }
+                <div class="card-body d-flex flex-column">
+                    <h6 class="card-title text-truncate">@item.FileName</h6>
+                    <p class="card-text mb-1"><small class="text-muted">@item.UploadedAt.ToLocalTime()</small></p>
+                    <p class="mb-2">
+                        @foreach (var mt in item.MediaTags)
+                        {
+                            <span class="badge bg-secondary me-1">@mt.Tag?.Name</span>
+                        }
+                    </p>
+                    <div class="mt-auto">
+                        <form asp-action="Delete" method="post" onsubmit="return confirm('Видалити файл?');">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button class="btn btn-danger btn-sm">Видалити</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
