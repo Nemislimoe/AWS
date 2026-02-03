@@ -1,0 +1,13 @@
+﻿
+@{
+    var token = ViewBag.ContinuationToken as string;
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "Index";
+    var controller = ViewContext.RouteData.Values["controller"]?.ToString();
+}
+@if (!string.IsNullOrEmpty(token))
+{
+    <form method="get" class="d-inline">
+        <input type="hidden" name="continuationToken" value="@token" />
+        <button type="submit" class="btn btn-primary">Далее</button>
+    </form>
+}

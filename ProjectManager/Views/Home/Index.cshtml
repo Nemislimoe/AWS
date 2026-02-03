@@ -1,0 +1,47 @@
+﻿@model ProjectManager.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Панель управления";
+}
+<h1>Панель управления</h1>
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>Проектов</h5>
+            <h2>@Model.TotalProjects</h2>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card p-3">
+            <h5>Задач</h5>
+            <h2>@Model.TotalTasks</h2>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <h4>Последние проекты</h4>
+        <ul class="list-group">
+            @foreach (var p in Model.RecentProjects)
+            {
+                <li class="list-group-item">
+                    <a asp-controller="Projects" asp-action="Details" asp-route-id="@p.Id">@p.Name</a>
+                    <div class="text-muted small">@p.StartDate?.ToString("yyyy-MM-dd")</div>
+                </li>
+            }
+        </ul>
+    </div>
+    <div class="col-md-6">
+        <h4>Последние задачи</h4>
+        <ul class="list-group">
+            @foreach (var t in Model.RecentTasks)
+            {
+                <li class="list-group-item">
+                    <strong>@t.Name</strong>
+                    <div class="text-muted small">Проект: @t.ProjectId — Срок: @t.DueDate?.ToString("yyyy-MM-dd")</div>
+                </li>
+            }
+        </ul>
+    </div>
+</div>

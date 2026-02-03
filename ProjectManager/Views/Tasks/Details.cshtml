@@ -1,0 +1,17 @@
+﻿@model ProjectManager.Models.TaskItem
+@{
+    ViewData["Title"] = "Детали задачи";
+    var assigned = ViewBag.AssignedMember as ProjectManager.Models.TeamMember;
+}
+<h1>@Model.Name</h1>
+
+<p>@Model.Description</p>
+
+<div><strong>Проект:</strong> @Model.ProjectId</div>
+<div><strong>Создано:</strong> @Model.CreatedDate.ToString("yyyy-MM-dd")</div>
+<div><strong>Срок:</strong> @(Model.DueDate?.ToString("yyyy-MM-dd") ?? "-")</div>
+<div><strong>Статус:</strong> @Model.Status</div>
+@if (assigned != null)
+{
+    <div><strong>Исполнитель:</strong> @assigned.Name @assigned.Surname (@assigned.Email)</div>
+}

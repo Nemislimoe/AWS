@@ -1,0 +1,40 @@
+﻿@model ProjectManager.Models.TaskItem
+@{
+    ViewData["Title"] = "Создать задачу";
+}
+<h1>Создать задачу</h1>
+
+<form asp-action="Create" method="post">
+    <div class="mb-3">
+        <label class="form-label">Проект (ID)</label>
+        <input asp-for="ProjectId" class="form-control" />
+        <span asp-validation-for="ProjectId" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Название</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Описание</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Срок</label>
+        <input asp-for="DueDate" class="form-control" type="date" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Исполнитель (TeamMember Id)</label>
+        <input asp-for="AssignedTo" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Статус</label>
+        <input asp-for="Status" class="form-control" />
+    </div>
+    <button class="btn btn-primary">Создать</button>
+    <a asp-action="Index" class="btn btn-secondary">Отмена</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

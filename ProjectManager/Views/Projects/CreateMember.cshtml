@@ -1,0 +1,37 @@
+﻿@model ProjectManager.Models.TeamMember
+@{
+    ViewData["Title"] = "Добавить участника";
+    var projectId = ViewBag.ProjectId as string;
+}
+
+<h1>Добавить участника в проект</h1>
+
+<form asp-action="CreateMember" method="post">
+    <input type="hidden" name="projectId" value="@projectId" />
+    <div class="mb-3">
+        <label class="form-label">Имя</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Фамилия</label>
+        <input asp-for="Surname" class="form-control" />
+        <span asp-validation-for="Surname" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Роль</label>
+        <input asp-for="Role" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Добавить</button>
+    <a asp-action="Details" asp-route-id="@projectId" class="btn btn-secondary">Отмена</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

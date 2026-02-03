@@ -1,0 +1,32 @@
+﻿@model ProjectManager.Models.Project
+@{
+    ViewData["Title"] = "Детали проекта";
+    var members = ViewBag.TeamMembers as List<ProjectManager.Models.TeamMember> ?? new();
+}
+<h1>@Model.Name</h1>
+
+<p>@Model.Description</p>
+
+<div class="mb-3">
+    <strong>Период:</strong> @(Model.StartDate?.ToString("yyyy-MM-dd") ?? "-") — @(Model.EndDate?.ToString("yyyy-MM-dd") ?? "-")
+</div>
+
+<h4>Участники</h4>
+@if (members.Any())
+{
+    <ul class="list-group mb-3">
+        @foreach (var m in members)
+        {
+            <li class="list-group-item">
+                <strong>@m.Name @m.Surname</strong> <span class="text-muted">(@m.Email)</span>
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p class="text-muted">Участники не добавлены.</p>
+}
+<a class="btn btn-success" asp-controller="Tasks" asp-action="Create" asp-route-projectId="@Model.Id">Создать задачу</a>
+<a class="btn btn-success" asp-action="CreateMember" asp-route-projectId="@Model.Id">Добавить участника</a>
+<a class="btn btn-secondary" asp-action="Index">Назад</a>

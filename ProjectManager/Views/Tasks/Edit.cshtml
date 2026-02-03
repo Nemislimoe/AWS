@@ -1,0 +1,36 @@
+﻿@model ProjectManager.Models.TaskItem
+@{
+    ViewData["Title"] = "Редактировать задачу";
+}
+<h1>Редактировать задачу</h1>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+    <div class="mb-3">
+        <label class="form-label">Название</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Описание</label>
+        <textarea asp-for="Description" class="form-control"></textarea>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Срок</label>
+        <input asp-for="DueDate" class="form-control" type="date" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Исполнитель (TeamMember Id)</label>
+        <input asp-for="AssignedTo" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Статус</label>
+        <input asp-for="Status" class="form-control" />
+    </div>
+    <button class="btn btn-primary">Сохранить</button>
+    <a asp-action="Index" class="btn btn-secondary">Отмена</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
