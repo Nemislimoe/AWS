@@ -1,4 +1,4 @@
-﻿@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.Identity
 @inject SignInManager<CloudMediaGallery.Models.ApplicationUser> SignInManager
 @inject UserManager<CloudMediaGallery.Models.ApplicationUser> UserManager
 <!DOCTYPE html>
@@ -21,13 +21,23 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarsExampleDefault">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" asp-controller="Media" asp-action="Index">Галерея</a></li>
-                    <li class="nav-item"><a class="nav-link" asp-controller="Media" asp-action="Upload">Завантажити</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">Головна</a></li>
+                    <li class="nav-item"><a class="nav-link" asp-controller="Search" asp-action="Index">🔍 Пошук</a></li>
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <li class="nav-item"><a class="nav-link" asp-controller="Media" asp-action="Index">Моя галерея</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Collections" asp-action="Index">📁 Колекції</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Media" asp-action="Upload">⬆️ Завантажити</a></li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item"><a class="nav-link text-warning" asp-controller="Admin" asp-action="Index">⚙️ Адмін</a></li>
+                        }
+                    }
                 </ul>
                 <ul class="navbar-nav">
                     @if (SignInManager.IsSignedIn(User))
                     {
-                        <li class="nav-item"><a class="nav-link">@UserManager.GetUserName(User)</a></li>
+                        <li class="nav-item"><a class="nav-link">👤 @UserManager.GetUserName(User)</a></li>
                         <li class="nav-item">
                             <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
                                 <button type="submit" class="btn btn-link nav-link">Вийти</button>

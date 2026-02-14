@@ -1,0 +1,232 @@
+@model CloudMediaGallery.Models.MediaFile
+
+@{
+    ViewData["Title"] = Model.FileName;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <!-- Media Display -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    @if (Model.MediaType == "image")
+                    {
+                        <img src="@Model.BlobUrl" class="img-fluid rounded" alt="@Model.FileName">
+                    }
+                    else if (Model.MediaType == "video")
+                    {
+                        <video controls class="w-100 rounded">
+                            <source src="@Model.BlobUrl" type="@Model.ContentType">
+                            Ваш браузер не підтримує відео.
+                        </video>
+                    }
+                </div>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="card mt-3 shadow-sm">
+                <div class="card-header">
+                    <h5 class="mb-0">💬 Коментарі (@Model.Comments.Count)</h5>
+                </div>
+                <div class="card-body">
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <form asp-controller="Media" asp-action="Comment" method="post" class="mb-4">
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <div class="mb-3">
+                                <textarea name="content" class="form-control" rows="3" placeholder="Залишити коментар..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Надіслати</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <a asp-controller="Account" asp-action="Login">Увійдіть</a>, щоб залишити коментар
+                        </div>
+                    }
+
+                    @foreach (var comment in Model.Comments.OrderByDescending(c => c.CreatedAt))
+                    {
+                        <div class="mb-3 p-3 border rounded">
+                            <div class="d-flex justify-content-between">
+                                <strong>@(comment.Author?.Email ?? "Анонім")</strong>
+                                <small class="text-muted">@comment.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</small>
+                            </div>
+                            <p class="mt-2 mb-1">@comment.Content</p>
+                            
+                            @if (User.Identity?.IsAuthenticated == true && comment.AuthorId == ViewBag.UserId)
+                            {
+                                <form asp-controller="Media" asp-action="DeleteComment" method="post" class="d-inline">
+                                    <input type="hidden" name="commentId" value="@comment.Id" />
+                                    <input type="hidden" name="mediaId" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-sm btn-link text-danger p-0">Видалити</button>
+                                </form>
+                            }
+
+                            @if (comment.Replies.Any())
+                            {
+                                <div class="ms-4 mt-2">
+                                    @foreach (var reply in comment.Replies.OrderBy(r => r.CreatedAt))
+                                    {
+                                        <div class="mb-2 p-2 bg-light rounded">
+                                            <div class="d-flex justify-content-between">
+                                                <strong>@(reply.Author?.Email ?? "Анонім")</strong>
+                                                <small class="text-muted">@reply.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</small>
+                                            </div>
+                                            <p class="mt-1 mb-0">@reply.Content</p>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Info & Actions Sidebar -->
+        <div class="col-lg-4">
+            <!-- Actions -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Дії</h5>
+                    
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="d-grid gap-2">
+                            @if (ViewBag.UserLiked)
+                            {
+                                <form asp-controller="Media" asp-action="Unlike" method="post">
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-danger w-100">
+                                        💔 Видалити лайк (@Model.Likes.Count)
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-controller="Media" asp-action="Like" method="post">
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-outline-danger w-100">
+                                        ❤️ Лайк (@Model.Likes.Count)
+                                    </button>
+                                </form>
+                            }
+
+                            <!-- Rating -->
+                            <div class="card mt-2">
+                                <div class="card-body">
+                                    <h6>Оцінити зображення</h6>
+                                    <div class="d-flex justify-content-center gap-2">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            int score = i;
+                                            <form asp-controller="Media" asp-action="Rate" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@Model.Id" />
+                                                <input type="hidden" name="score" value="@score" />
+                                                <button type="submit" class="btn btn-sm @(ViewBag.UserRating == score ? "btn-warning" : "btn-outline-warning")">
+                                                    ⭐
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                    @if (Model.AverageRating > 0)
+                                    {
+                                        <p class="text-center mt-2 mb-0">
+                                            Середній рейтинг: <strong>@Model.AverageRating.ToString("F1")</strong> / 5.0
+                                        </p>
+                                    }
+                                </div>
+                            </div>
+
+                            @if (Model.UploadedById == ViewContext.HttpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+                            {
+                                <form asp-controller="Media" asp-action="Delete" method="post" onsubmit="return confirm('Ви впевнені?');">
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-danger w-100">Видалити</button>
+                                </form>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <a asp-controller="Account" asp-action="Login">Увійдіть</a>, щоб взаємодіяти з контентом
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Info -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Інформація</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>Назва:</strong> @Model.FileName</li>
+                        <li><strong>Тип:</strong> @Model.MediaType</li>
+                        <li><strong>Завантажено:</strong> @Model.UploadedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</li>
+                        <li><strong>Автор:</strong> @(Model.UploadedBy?.Email ?? "Невідомо")</li>
+                        <li><strong>Переглядів:</strong> @Model.ViewCount</li>
+                        <li><strong>Лайків:</strong> @Model.Likes.Count</li>
+                    </ul>
+
+                    @if (Model.Metadata != null)
+                    {
+                        <div class="mt-3">
+                            <strong>Опис AI:</strong>
+                            <p class="text-muted">@Model.Metadata</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Tags -->
+            @if (Model.MediaTags.Any())
+            {
+                <div class="card shadow-sm mb-3">
+                    <div class="card-body">
+                        <h5 class="card-title">Теги</h5>
+                        <div>
+                            @foreach (var tag in Model.MediaTags)
+                            {
+                                <a href="@Url.Action("Index", "Media", new { tagId = tag.TagId })" class="badge bg-secondary text-decoration-none me-1 mb-1">
+                                    @tag.Tag?.Name
+                                </a>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Add to Collection -->
+            @if (User.Identity?.IsAuthenticated == true && ViewBag.UserCollections != null)
+            {
+                var collections = ViewBag.UserCollections as List<CloudMediaGallery.Models.Collection>;
+                @if (collections?.Any() == true)
+                {
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title">Додати до колекції</h5>
+                            @foreach (var collection in collections)
+                            {
+                                <form asp-controller="Collections" asp-action="AddMedia" method="post" class="d-inline">
+                                    <input type="hidden" name="collectionId" value="@collection.Id" />
+                                    <input type="hidden" name="mediaId" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-primary mb-1">
+                                        + @collection.Name
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-controller="Media" asp-action="Index" class="btn btn-secondary">← Назад до галереї</a>
+    </div>
+</div>

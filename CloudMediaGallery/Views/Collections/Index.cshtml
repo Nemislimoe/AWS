@@ -1,0 +1,79 @@
+@model List<CloudMediaGallery.Models.Collection>
+
+@{
+    ViewData["Title"] = "Мої колекції";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>📁 Мої колекції</h2>
+        <a asp-action="Create" class="btn btn-primary">+ Створити колекцію</a>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var collection in Model)
+            {
+                <div class="col">
+                    <div class="card h-100 shadow-sm">
+                        @if (collection.CollectionMedias.Any())
+                        {
+                            var firstMedia = collection.CollectionMedias.First().MediaFile;
+                            @if (firstMedia?.MediaType == "image")
+                            {
+                                <img src="@firstMedia.BlobUrl" class="card-img-top" style="height: 200px; object-fit: cover;" alt="@collection.Name">
+                            }
+                            else
+                            {
+                                <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                                    <span class="text-white fs-1">📁</span>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                                <span class="text-muted fs-1">📁</span>
+                            </div>
+                        }
+                        
+                        <div class="card-body">
+                            <h5 class="card-title">@collection.Name</h5>
+                            @if (!string.IsNullOrEmpty(collection.Description))
+                            {
+                                <p class="card-text text-muted small">@collection.Description</p>
+                            }
+                            <p class="mb-2">
+                                <span class="badge bg-info">@collection.CollectionMedias.Count зображень</span>
+                                @if (collection.IsPublic)
+                                {
+                                    <span class="badge bg-success">Публічна</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-warning text-dark">Приватна</span>
+                                }
+                            </p>
+                            <div class="d-grid gap-2">
+                                <a href="@Url.Action("Details", new { id = collection.Id })" class="btn btn-outline-primary btn-sm">Переглянути</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            <h4>У вас ще немає колекцій</h4>
+            <p>Створіть колекцію, щоб організувати свої зображення</p>
+            <a asp-action="Create" class="btn btn-primary">Створити першу колекцію</a>
+        </div>
+    }
+
+    <div class="mt-4">
+        <a asp-action="Explore" class="btn btn-outline-secondary">Переглянути публічні колекції →</a>
+    </div>
+</div>

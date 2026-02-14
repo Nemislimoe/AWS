@@ -1,0 +1,43 @@
+@model CloudMediaGallery.Models.Collection
+
+@{
+    ViewData["Title"] = "Редагувати колекцію";
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h2 class="card-title mb-4">✏️ Редагувати колекцію</h2>
+                    
+                    <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="mb-3">
+                            <label for="Name" class="form-label">Назва колекції *</label>
+                            <input type="text" class="form-control" id="Name" name="Name" value="@Model.Name" required maxlength="100">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="Description" class="form-label">Опис</label>
+                            <textarea class="form-control" id="Description" name="Description" rows="3" maxlength="500">@Model.Description</textarea>
+                        </div>
+                        
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="IsPublic" name="IsPublic" value="true" @(Model.IsPublic ? "checked" : "")>
+                            <label class="form-check-label" for="IsPublic">
+                                Публічна колекція (інші користувачі зможуть переглядати)
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">💾 Зберегти</button>
+                            <a asp-action="Details" asp-route-id="@Model.Id" class="btn btn-secondary">Скасувати</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

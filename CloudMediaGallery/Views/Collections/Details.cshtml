@@ -1,0 +1,153 @@
+@model CloudMediaGallery.Models.Collection
+
+@{
+    ViewData["Title"] = Model.Name;
+    var isOwner = ViewBag.IsOwner ?? false;
+    var isSubscribed = ViewBag.IsSubscribed ?? false;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h2>📁 @Model.Name</h2>
+                @if (isOwner)
+                {
+                    <div>
+                        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-sm btn-outline-primary">✏️ Редагувати</a>
+                        <form asp-action="Delete" asp-route-id="@Model.Id" method="post" class="d-inline" onsubmit="return confirm('Видалити колекцію?');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Видалити</button>
+                        </form>
+                    </div>
+                }
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <p class="text-muted">@Model.Description</p>
+            }
+
+            <div class="mb-3">
+                <span class="badge bg-info">@Model.CollectionMedias.Count зображень</span>
+                @if (Model.IsPublic)
+                {
+                    <span class="badge bg-success">Публічна</span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark">Приватна</span>
+                }
+                <span class="badge bg-secondary">📊 Підписників: @Model.Subscriptions.Count</span>
+            </div>
+
+            @if (Model.CollectionMedias.Any())
+            {
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+                    @foreach (var cm in Model.CollectionMedias.OrderByDescending(cm => cm.AddedAt))
+                    {
+                        var media = cm.MediaFile;
+                        @if (media != null)
+                        {
+                            <div class="col">
+                                <div class="card h-100 shadow-sm">
+                                    @if (media.MediaType == "image")
+                                    {
+                                        <img src="@media.BlobUrl" class="card-img-top" alt="@media.FileName" style="height: 200px; object-fit: cover;">
+                                    }
+                                    else if (media.MediaType == "video")
+                                    {
+                                        <video class="card-img-top" style="height: 200px; object-fit: cover;">
+                                            <source src="@media.BlobUrl" type="@media.ContentType">
+                                        </video>
+                                    }
+                                    
+                                    <div class="card-body p-2">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                ❤️ @media.Likes.Count
+                                                @if (media.AverageRating > 0)
+                                                {
+                                                    <span>⭐ @media.AverageRating.ToString("F1")</span>
+                                                }
+                                            </small>
+                                            <div>
+                                                <a href="@Url.Action("Details", "Media", new { id = media.Id })" class="btn btn-sm btn-outline-primary">👁️</a>
+                                                @if (isOwner)
+                                                {
+                                                    <form asp-action="RemoveMedia" asp-route-collectionId="@Model.Id" asp-route-mediaId="@media.Id" method="post" class="d-inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <button type="submit" class="btn btn-sm btn-outline-danger">✖️</button>
+                                                    </form>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info">
+                    <h4>Колекція порожня</h4>
+                    @if (isOwner)
+                    {
+                        <p>Додайте зображення до колекції через сторінку деталей зображення</p>
+                        <a asp-controller="Media" asp-action="Index" class="btn btn-primary">Перейти до галереї</a>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Інформація</h5>
+                    <ul class="list-unstyled">
+                        <li><strong>Власник:</strong> @(Model.Owner?.Email ?? "Невідомо")</li>
+                        <li><strong>Створено:</strong> @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</li>
+                        @if (Model.UpdatedAt.HasValue)
+                        {
+                            <li><strong>Оновлено:</strong> @Model.UpdatedAt.Value.ToLocalTime().ToString("dd.MM.yyyy")</li>
+                        }
+                        <li><strong>Зображень:</strong> @Model.CollectionMedias.Count</li>
+                    </ul>
+
+                    @if (!isOwner && Model.IsPublic && User.Identity?.IsAuthenticated == true)
+                    {
+                        <hr>
+                        @if (isSubscribed)
+                        {
+                            <form asp-action="Unsubscribe" asp-route-id="@Model.Id" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-outline-danger w-100">
+                                    🔕 Відписатися
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-action="Subscribe" asp-route-id="@Model.Id" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-primary w-100">
+                                    🔔 Підписатися
+                                </button>
+                            </form>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-3">
+        <a asp-action="Index" class="btn btn-secondary">← Назад до моїх колекцій</a>
+        @if (Model.IsPublic && !isOwner)
+        {
+            <a asp-action="Explore" class="btn btn-outline-secondary">Інші публічні колекції</a>
+        }
+    </div>
+</div>

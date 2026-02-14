@@ -1,27 +1,19 @@
-@model List<CloudMediaGallery.Models.MediaFile>
+@model CloudMediaGallery.Services.SearchResult
 
 @{
-    ViewData["Title"] = ViewBag.PageTitle ?? "Cloud Media Gallery";
+    ViewData["Title"] = "Результати пошуку";
 }
 
 <div class="container mt-4">
-    <div class="text-center mb-5">
-        <h1 class="display-4">@ViewBag.PageTitle</h1>
-        @if (User.Identity?.IsAuthenticated == true)
-        {
-            <p class="lead">На основі ваших вподобань та історії пошуку</p>
-        }
-        else
-        {
-            <p class="lead">Найпопулярніші зображення нашої спільноти</p>
-            <p><a class="btn btn-primary" asp-controller="Account" asp-action="Register">Зареєструватися</a></p>
-        }
+    <div class="mb-4">
+        <h2>Результати пошуку: "@ViewBag.Query"</h2>
+        <p class="text-muted">Знайдено: @Model.TotalCount</p>
     </div>
 
-    @if (Model != null && Model.Any())
+    @if (Model.Results.Any())
     {
         <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
-            @foreach (var media in Model)
+            @foreach (var media in Model.Results)
             {
                 <div class="col">
                     <div class="card h-100 shadow-sm">
@@ -68,39 +60,31 @@
                 </div>
             }
         </div>
+
+        @* Pagination *@
+        @if (ViewBag.TotalPages > 1)
+        {
+            <nav class="mt-4">
+                <ul class="pagination justify-content-center">
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", new { q = ViewBag.Query, page = i })">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        }
     }
     else
     {
-        <div class="alert alert-info text-center" role="alert">
-            <h4 class="alert-heading">Поки що немає зображень</h4>
-            <p>Станьте першим, хто завантажить зображення!</p>
-            <hr>
-            <p class="mb-0">
-                <a class="btn btn-primary" asp-controller="Media" asp-action="Upload">Завантажити зображення</a>
-            </p>
+        <div class="alert alert-info">
+            <h4>Нічого не знайдено</h4>
+            <p>Спробуйте інші ключові слова або <a asp-controller="Search" asp-action="Index">почніть новий пошук</a></p>
         </div>
     }
 
-    @if (User.Identity?.IsAuthenticated != true)
-    {
-        <div class="text-center mt-5">
-            <h3>Приєднуйтесь до нашої спільноти!</h3>
-            <p class="lead">Завантажуйте, організовуйте та діліться своїми зображеннями</p>
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-                <a class="btn btn-primary btn-lg" asp-controller="Account" asp-action="Register">Зареєструватися</a>
-                <a class="btn btn-outline-secondary btn-lg" asp-controller="Account" asp-action="Login">Увійти</a>
-            </div>
-        </div>
-    }
+    <div class="mt-4">
+        <a asp-controller="Search" asp-action="Index" class="btn btn-secondary">← Новий пошук</a>
+    </div>
 </div>
-
-@section Scripts {
-    <style>
-        .card {
-            transition: transform 0.2s;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-        }
-    </style>
-}

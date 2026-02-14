@@ -1,0 +1,36 @@
+@{
+    ViewData["Title"] = "Пошук зображень";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h1 class="text-center mb-4">🔍 Пошук зображень</h1>
+                    <p class="text-center text-muted mb-4">Шукайте зображення за тегами, назвою файлу або описом</p>
+                    
+                    <form asp-controller="Search" asp-action="Search" method="post">
+                        <div class="mb-3">
+                            <input type="text" 
+                                   name="query" 
+                                   class="form-control form-control-lg" 
+                                   placeholder="Введіть ключові слова..." 
+                                   required 
+                                   autofocus>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">Шукати</button>
+                        </div>
+                    </form>
+
+                    <div class="mt-4 text-center">
+                        <small class="text-muted">
+                            Приклади: природа, море, захід, портрет, тварини
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

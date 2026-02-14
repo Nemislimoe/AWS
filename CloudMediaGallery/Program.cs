@@ -6,14 +6,14 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Конфігурація DB (SQLite за замовчуванням)
+// РљРѕРЅС„С–РіСѓСЂР°С†С–СЏ DB (SQLite Р·Р° Р·Р°РјРѕРІС‡СѓРІР°РЅРЅСЏРј)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Identity (реєстрація/логін)
+// Identity (СЂРµС”СЃС‚СЂР°С†С–СЏ/Р»РѕРіС–РЅ)
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 {
-    // Спрощені правила пароля для навчального проєкту
+    // РЎРїСЂРѕС‰РµРЅС– РїСЂР°РІРёР»Р° РїР°СЂРѕР»СЋ РґР»СЏ РЅР°РІС‡Р°Р»СЊРЅРѕРіРѕ РїСЂРѕС”РєС‚Сѓ
     options.Password.RequireDigit = false;
     options.Password.RequireLowercase = false;
     options.Password.RequireUppercase = false;
@@ -26,19 +26,37 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 // MVC
 builder.Services.AddControllersWithViews();
 
-// Налаштування StorageOptions з appsettings
+// РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ StorageOptions Р· appsettings
 builder.Services.Configure<StorageOptions>(builder.Configuration.GetSection("Storage"));
 
-// Реєстрація BlobService як singleton
+// РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ CognitiveServicesOptions Р· appsettings
+builder.Services.Configure<CognitiveServicesOptions>(builder.Configuration.GetSection("AzureCognitiveServices"));
+
+// Р РµС”СЃС‚СЂР°С†С–СЏ СЃРµСЂРІС–СЃС–РІ
 builder.Services.AddSingleton<IBlobService, BlobService>();
+builder.Services.AddHttpClient<ICognitiveService, CognitiveService>();
+builder.Services.AddScoped<ISearchService, SearchService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 
 var app = builder.Build();
 
-// Автоматичне створення БД та застосування міграцій при запуску (для зручності)
+// РђРІС‚РѕРјР°С‚РёС‡РЅРµ СЃС‚РІРѕСЂРµРЅРЅСЏ Р‘Р” С‚Р° Р·Р°СЃС‚РѕСЃСѓРІР°РЅРЅСЏ РјС–РіСЂР°С†С–Р№ РїСЂРё Р·Р°РїСѓСЃРєСѓ (РґР»СЏ Р·СЂСѓС‡РЅРѕСЃС‚С–)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    
     db.Database.Migrate();
+    
+    // РЎС‚РІРѕСЂРµРЅРЅСЏ СЂРѕР»РµР№, СЏРєС‰Рѕ С—С… РЅРµРјР°С”
+    if (!await roleManager.RoleExistsAsync("Admin"))
+    {
+        await roleManager.CreateAsync(new IdentityRole("Admin"));
+    }
+    if (!await roleManager.RoleExistsAsync("User"))
+    {
+        await roleManager.CreateAsync(new IdentityRole("User"));
+    }
 }
 
 if (!app.Environment.IsDevelopment())
@@ -47,6 +65,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
@@ -54,6 +73,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Media}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
